@@ -1,0 +1,26 @@
+[
+  {
+    "id": 2,
+    "name": "Иван Байер",
+    "email": "buyer@example.com",
+    "password": "buyer123",
+    "role": "buyer",
+    "discount": 25
+  },
+  {
+    "id": 3,
+    "name": "Обычный Покупатель",
+    "email": "user@example.com",
+    "password": "user123",
+    "role": "customer",
+    "discount": 0
+  },
+  {
+    "id": 1,
+    "name": "Админ",
+    "email": "admin@alainrobyn.com",
+    "password": "admin123",
+    "role": "admin",
+    "discount": 0
+  }
+]

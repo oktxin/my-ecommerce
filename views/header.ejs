@@ -1,0 +1,641 @@
+<!DOCTYPE html>
+<html lang="ru">
+  <head>
+    <!-- Основной фавикон -->
+<link rel="icon" href="/favicon.svg" type="image/x-icon">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title><%= title %></title>
+    <link rel="stylesheet" href="/css/output.css" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=League+Gothic&display=swap"
+      rel="stylesheet"
+    />
+    <!-- Иконки Font Awesome -->
+    <link 
+      rel="stylesheet" 
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+    
+    <style>
+      .league-gothic {
+        font-family: "League Gothic", sans-serif;
+      }
+      
+      html {
+        scroll-behavior: smooth;
+      }
+      
+      /* Сброс отступов для body */
+      body {
+        margin: 0;
+        padding: 0;
+        min-height: 100vh;
+      }
+      
+      /* Навигационный контейнер */
+      .nav-container {
+        position: fixed;
+        top: 12px;
+        left: 12px;
+        z-index: 1000;
+      }
+      
+      /* Навигационное меню в левом верхнем углу - только контур */
+      .nav-rectangle {
+        width: 380px;
+        height: 40px;
+        background-color: transparent; /* Прозрачный фон */
+        border: 1px solid rgba(128, 128, 128, 0.8); /* Только граница серого цвета */
+        display: flex;
+        align-items: center;
+        justify-content: space-between; /* Распределяем пространство */
+        padding: 0 12px; /* Отступы слева и справа */
+        box-sizing: border-box;
+        transition: all 0.3s ease;
+      }
+      
+      /* Эффект стекла с инверсией при открытии */
+      .nav-container.active .nav-rectangle {
+        background-color: rgba(255, 255, 255, 0.15); /* Светлый прозрачный фон */
+        backdrop-filter: blur(15px) invert(0.95) brightness(1.2); /* Эффект стекла с частичной инверсией */
+        -webkit-backdrop-filter: blur(15px) invert(0.95) brightness(1.2);
+        border-color: rgba(255, 255, 255, 0.5); /* Светлая граница */
+      }
+      
+      /* Белый текст при открытии */
+      .nav-container.active .nav-rectangle .brand-name,
+      .nav-container.active .nav-rectangle .nav-icon {
+        color: white;
+      }
+      
+      .nav-rectangle .brand-name {
+        color: black; /* Черный текст */
+        font-size: 14px; /* Меньше размер */
+        font-weight: 500;
+        letter-spacing: 0.5px;
+        text-decoration: none;
+        white-space: nowrap; /* Не переносить текст */
+      }
+      
+      /* Контейнер для иконок */
+      .nav-icons {
+        display: flex;
+        align-items: center;
+        gap: 16px; /* Расстояние между иконками */
+      }
+      
+      /* Стили для иконок-ссылок */
+      .nav-icon {
+        color: black;
+        text-decoration: none;
+        font-size: 14px; /* Меньше размер */
+        transition: all 0.3s ease;
+        opacity: 0.8;
+      }
+      
+      .nav-icon:hover {
+        opacity: 1;
+        transform: scale(1.1);
+      }
+      
+      /* Иконка корзины с количеством */
+      .cart-icon {
+        position: relative;
+        display: flex;
+        align-items: center;
+      }
+      
+      .cart-count {
+        position: absolute;
+        top: -6px;
+        right: -8px;
+        background-color: black;
+        color: white;
+        font-size: 9px; /* Меньше */
+        width: 14px;
+        height: 14px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+      }
+      
+      /* Белый счетчик при открытии */
+      .nav-container.active .cart-count {
+        background-color: white;
+        color: black;
+      }
+      
+      /* Бургер-меню */
+      .burger-menu {
+        cursor: pointer;
+      }
+      
+      .burger-icon {
+        display: flex;
+        flex-direction: column;
+        gap: 3px; /* Меньше */
+        width: 18px;
+        height: 14px;
+      }
+      
+      .burger-icon span {
+        display: block;
+        width: 100%;
+        height: 2px;
+        background-color: black;
+        transition: all 0.3s ease;
+      }
+      
+      /* Белые линии бургера при открытии */
+      .nav-container.active .burger-icon span {
+        background-color: white;
+      }
+      
+      .nav-container.active .burger-icon span:nth-child(1) {
+        transform: rotate(45deg) translate(4px, 4px);
+      }
+      
+      .nav-container.active .burger-icon span:nth-child(2) {
+        opacity: 0;
+      }
+      
+      .nav-container.active .burger-icon span:nth-child(3) {
+        transform: rotate(-45deg) translate(4px, -4px);
+      }
+      
+      /* Выпадающее меню - часть того же контейнера */
+      .dropdown-menu {
+        width: 380px; /* Такая же ширина как у навигационного прямоугольника */
+        max-height: 0;
+        overflow: hidden;
+        background-color: rgba(255, 255, 255, 0.15); /* Светлый прозрачный фон */
+        backdrop-filter: blur(20px) invert(0.95) brightness(1.2); /* Эффект стекла с частичной инверсией */
+        -webkit-backdrop-filter: blur(20px) invert(0.95) brightness(1.2);
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        border-top: none; /* Убираем верхнюю границу для слитности */
+        transition: max-height 0.3s ease-out;
+        box-sizing: border-box;
+        margin-top: -1px; /* Перекрываем границу прямоугольника */
+      }
+      
+      /* Открытое меню */
+      .nav-container.active .dropdown-menu {
+        max-height: 294px; /* Высота как на скриншоте */
+      }
+      
+      .dropdown-content {
+        padding: 0;
+        max-height: 294px;
+        display: flex;
+        flex-direction: column;
+      }
+      
+      /* Список ссылок */
+      .menu-links {
+        display: flex;
+        flex-direction: column;
+      }
+      
+      .menu-link {
+        color: white;
+        text-decoration: none;
+        font-size: 13.5px; /* было 14px → чуть меньше */
+        padding: 9px 15px; /* было 12px 15px → сильно уменьшили вертикальный padding */
+        transition: all 0.2s ease;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
+      
+      .menu-link:last-child {
+        border-bottom: none;
+      }
+      
+      .menu-link:hover {
+        background-color: rgba(255, 255, 255, 0.15);
+      }
+      
+      /* Стрелка для ссылок */
+      .menu-link i {
+        font-size: 11px; /* Меньше */
+        color: rgba(255, 255, 255, 0.7);
+      }
+      
+      /* Подменю для Men и Women */
+      .submenu {
+        max-height: 0;
+        overflow: hidden;
+        transition: max-height 0.3s ease-out;
+        background-color: rgba(0, 0, 0, 0.1); /* Очень легкий темный фон */
+      }
+      
+      .submenu.active {
+        max-height: 150px;
+      }
+      
+      .submenu-link {
+        color: rgba(255, 255, 255, 0.95);
+        text-decoration: none;
+        font-size: 12.5px; /* было 13px */
+        padding: 7px 15px 7px 25px; /* было 8px → чуть меньше */
+        display: block;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        transition: all 0.2s ease;
+      }
+      
+      .submenu-link:hover {
+        background-color: rgba(255, 255, 255, 0.15);
+        color: white;
+      }
+      
+      .submenu-link:last-child {
+        border-bottom: none;
+      }
+      
+      /* Блок с валютой/регионом */
+      .currency-block {
+        margin-top: auto;
+        padding: 10px 15px; /* было 12px → 10px */
+        border-top: 1px solid rgba(255, 255, 255, 0.2);
+        background-color: rgba(0, 0, 0, 0.1);
+      }
+      
+      .currency-label {
+        font-size: 12.5px; /* было 13px */
+        color: white;
+        font-weight: 500;
+        margin-bottom: 4px; /* было 6px */
+      }
+      
+      .currency-value {
+        font-size: 12.5px;
+        color: rgba(255, 255, 255, 0.9);
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+      
+      .currency-value .checkmark {
+        color: white;
+        font-weight: bold;
+        font-size: 12px;
+      }
+      
+      /* Убираем лишний отступ сверху в main */
+      main {
+        padding-top: 0 !important;
+        margin-top: 0 !important;
+        position: relative;
+      }
+      
+      /* Для страниц, где есть контент под меню */
+      .page-content {
+        padding-top: 60px; /* Отступ для меню */
+      }
+      
+      /* Адаптивность для мобильных */
+      @media (max-width: 640px) {
+        .nav-container {
+          width: 320px;
+          top: 8px;
+          left: 8px;
+        }
+        
+        .nav-rectangle {
+          width: 320px;
+          height: 36px;
+          padding: 0 10px;
+        }
+        
+        .dropdown-menu {
+          width: 320px;
+        }
+        
+        .nav-container.active .dropdown-menu {
+          max-height: 340px;
+        }
+        
+        .dropdown-content {
+          padding: 0;
+          max-height: 340px;
+        }
+        
+        .nav-rectangle .brand-name {
+          font-size: 13px;
+        }
+        
+        .nav-icons {
+          gap: 12px;
+        }
+        
+        .nav-icon {
+          font-size: 13px;
+        }
+        
+        .cart-count {
+          width: 13px;
+          height: 13px;
+          font-size: 8px;
+          top: -5px;
+          right: -6px;
+        }
+        
+        .burger-icon {
+          width: 16px;
+          height: 12px;
+          gap: 2px;
+        }
+        
+        .menu-link {
+          font-size: 13px;
+          padding: 10px 12px;
+        }
+        
+        .submenu-link {
+          font-size: 12px;
+          padding: 7px 12px 7px 20px;
+        }
+      }
+      
+      /* Для очень маленьких экранов */
+      @media (max-width: 400px) {
+        .nav-container {
+          width: 280px;
+          top: 6px;
+          left: 6px;
+        }
+        
+        .nav-rectangle {
+          width: 280px;
+          height: 32px;
+          padding: 0 8px;
+        }
+        
+        .dropdown-menu {
+          width: 280px;
+        }
+        
+        .nav-container.active .dropdown-menu {
+          max-height: 260px;
+        }
+        
+        .dropdown-content {
+          max-height: 260px;
+        }
+        
+        .nav-rectangle .brand-name {
+          font-size: 12px;
+        }
+        
+        .nav-icons {
+          gap: 10px;
+        }
+        
+        .nav-icon {
+          font-size: 12px;
+        }
+        
+        .cart-count {
+          width: 12px;
+          height: 12px;
+          font-size: 7px;
+          top: -4px;
+          right: -5px;
+        }
+        
+        .burger-icon {
+          width: 14px;
+          height: 10px;
+        }
+        
+        .menu-link {
+          font-size: 12px;
+          padding: 8px 10px;
+        }
+        
+        .submenu-link {
+          font-size: 11px;
+          padding: 6px 10px 6px 18px;
+        }
+        
+        .currency-block {
+          padding: 10px 12px;
+        }
+        
+        .currency-label, .currency-value {
+          font-size: 12px;
+        }
+      }
+    </style>
+  </head>
+  <body class="min-h-screen bg-white text-black overflow-x-hidden">
+    
+    <!-- Навигационный контейнер -->
+    <div class="nav-container" id="navContainer">
+      <!-- Прямоугольник навигации -->
+      <div class="nav-rectangle">
+        <!-- Название бренда (ссылка на главную) слева -->
+        <a href="/" class="brand-name">
+          Alain Robyn
+        </a>
+        
+        <!-- Иконки-ссылки справа -->
+        <div class="nav-icons">
+          <!-- Иконка каталога -->
+          <a href="/catalog" class="nav-icon" title="Каталог товаров">
+            <i class="fas fa-th-large"></i>
+          </a>
+          
+          <!-- Иконка wishlist — сердечко -->
+          <a href="/wishlist" class="nav-icon" title="Wishlist">
+            <i class="fas fa-heart"></i>
+          </a>
+          
+          <!-- Иконка корзины с количеством -->
+          <a href="/cart" class="nav-icon cart-icon" title="Корзина">
+            <i class="fas fa-shopping-bag"></i>
+            <% if (cart && cart.length > 0) { %>
+              <span class="cart-count"><%= cart.length %></span>
+            <% } %>
+          </a>
+          
+          <!-- Бургер-меню -->
+          <div class="burger-menu nav-icon">
+            <div class="burger-icon">
+              <span></span>
+              <span></span>
+              <span></span>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Выпадающее меню -->
+      <div class="dropdown-menu">
+        <div class="dropdown-content">
+          <!-- Список ссылок -->
+          <div class="menu-links">
+            <!-- Men с подменю -->
+            <a href="#" class="menu-link menu-toggle" data-submenu="men">
+              Men
+              <i class="fas fa-chevron-right toggle-icon"></i>
+            </a>
+            <div class="submenu" id="submenu-men">
+              <a href="/catalog?category=men" class="submenu-link">Все для Men</a>
+              <a href="/catalog?category=men&type=pants" class="submenu-link">Pants</a>
+              <a href="/catalog?category=men&type=tshirt" class="submenu-link">T-Shirt</a>
+              <a href="/catalog?category=men&type=belt" class="submenu-link">Belt</a>
+            </div>
+            
+            <!-- Women с подменю -->
+            <a href="#" class="menu-link menu-toggle" data-submenu="women">
+              Women
+              <i class="fas fa-chevron-right toggle-icon"></i>
+            </a>
+            <div class="submenu" id="submenu-women">
+              <a href="/catalog?category=women" class="submenu-link">Все для Women</a>
+              <a href="/catalog?category=women&type=pants" class="submenu-link">Pants</a>
+              <a href="/catalog?category=women&type=tshirt" class="submenu-link">T-Shirt</a>
+              <a href="/catalog?category=women&type=dress" class="submenu-link">Dress</a>
+            </div>
+            
+            <!-- Unisex -->
+            <a href="/catalog?category=unisex" class="menu-link">
+              Unisex
+              <i class="fas fa-chevron-right"></i>
+            </a>
+            
+            <!-- Community Rewards -->
+            <a href="/rewards" class="menu-link">
+              Community Rewards
+              <i class="fas fa-chevron-right"></i>
+            </a>
+            
+            <!-- === ВОТ ЗДЕСЬ ПЕРСОНАЛИЗИРОВАННЫЕ ССЫЛКИ ПО РОЛИ === -->
+            <% if (locals.user) { %>
+              <% if (user.role === 'buyer') { %>
+                <a href="/buyer-dashboard" class="menu-link">
+                  Оптовый кабинет
+                  <i class="fas fa-chevron-right"></i>
+                </a>
+              <% } %>
+              
+              <!-- Кнопка выхода -->
+              <a href="/logout" class="menu-link">
+                Выйти
+                <i class="fas fa-sign-out-alt"></i>
+              </a>
+            <% } else { %>
+              <!-- Для неавторизованных -->
+              <a href="/login" class="menu-link">
+                Войти
+                <i class="fas fa-chevron-right"></i>
+              </a>
+              <a href="/register" class="menu-link">
+                Регистрация
+                <i class="fas fa-chevron-right"></i>
+              </a>
+            <% } %>
+          </div>
+          
+          <!-- Блок с валютой/регионом -->
+          <div class="currency-block">
+            <div class="currency-label">LITHUANIA (EUR €)</div>
+            <div class="currency-value">
+              <span>Текущая валюта</span>
+              <span class="checkmark">✔</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Убрал z-index: 10 чтобы не было белой полоски -->
+    <main>
+    
+    <!-- Скрипт для бургер-меню и подменю -->
+    <script>
+      document.addEventListener('DOMContentLoaded', function() {
+        const navContainer = document.getElementById('navContainer');
+        const burgerMenu = navContainer.querySelector('.burger-menu');
+        
+        // Открытие/закрытие основного меню
+        burgerMenu.addEventListener('click', function(e) {
+          e.stopPropagation();
+          navContainer.classList.toggle('active');
+        });
+        
+        // Закрытие меню при клике вне его
+        document.addEventListener('click', function(e) {
+          if (!navContainer.contains(e.target)) {
+            navContainer.classList.remove('active');
+            // Закрываем все подменю при закрытии основного меню
+            document.querySelectorAll('.submenu').forEach(submenu => {
+              submenu.classList.remove('active');
+            });
+            document.querySelectorAll('.toggle-icon').forEach(icon => {
+              icon.style.transform = 'rotate(0deg)';
+            });
+          }
+        });
+        
+        // Работа с подменю для Men и Women
+        const menuToggles = document.querySelectorAll('.menu-toggle');
+        
+        menuToggles.forEach(toggle => {
+          toggle.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            
+            const submenuId = this.getAttribute('data-submenu');
+            const submenu = document.getElementById(`submenu-${submenuId}`);
+            const icon = this.querySelector('.toggle-icon');
+            
+            // Закрываем другие открытые подменю
+            document.querySelectorAll('.submenu').forEach(otherSubmenu => {
+              if (otherSubmenu !== submenu) {
+                otherSubmenu.classList.remove('active');
+              }
+            });
+            
+            document.querySelectorAll('.toggle-icon').forEach(otherIcon => {
+              if (otherIcon !== icon) {
+                otherIcon.style.transform = 'rotate(0deg)';
+              }
+            });
+            
+            // Переключаем текущее подменю
+            submenu.classList.toggle('active');
+            
+            // Поворачиваем иконку
+            if (submenu.classList.contains('active')) {
+              icon.style.transform = 'rotate(90deg)';
+            } else {
+              icon.style.transform = 'rotate(0deg)';
+            }
+          });
+        });
+        
+        // Закрытие всего меню при клике на ссылку внутри него
+        const menuLinks = document.querySelectorAll('.menu-link, .submenu-link');
+        menuLinks.forEach(link => {
+          link.addEventListener('click', function() {
+            // Если это не тоггл для подменю
+            if (!this.classList.contains('menu-toggle')) {
+              navContainer.classList.remove('active');
+              // Закрываем все подменю
+              document.querySelectorAll('.submenu').forEach(submenu => {
+                submenu.classList.remove('active');
+              });
+              document.querySelectorAll('.toggle-icon').forEach(icon => {
+                icon.style.transform = 'rotate(0deg)';
+              });
+            }
+          });
+        });
+      });
+    </script>

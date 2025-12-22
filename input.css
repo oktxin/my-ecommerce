@@ -1,0 +1,8 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Кастомные стили, если нужно (например, для фиолетового) */
+body {
+  @apply bg-fuchsia-600; /* Или hex #d600d6 */
+}

@@ -1,0 +1,216 @@
+<%- include('header', { title: 'Оформление заказа | Alain Robyn' }) %>
+
+<div class="min-h-screen bg-gray-50 py-12 px-4">
+  <div class="max-w-4xl mx-auto">
+    <h1 class="text-3xl font-bold mb-8 text-center">Оформление заказа</h1>
+    
+    <div class="grid md:grid-cols-2 gap-8">
+      <!-- Левая колонка - информация о заказе -->
+      <div>
+        <div class="bg-white rounded-lg shadow p-6 mb-6">
+          <h2 class="text-xl font-bold mb-4">Товары в заказе</h2>
+          
+          <% if (cart && cart.length > 0) { %>
+            <% let total = 0; %>
+            <div class="space-y-6">
+              <% cart.forEach(item => { 
+                const itemTotal = item.isBulk && item.bulkTotal ? item.bulkTotal : item.price * item.qty;
+                total += itemTotal;
+              %>
+              <div class="flex items-start border-b pb-6 last:border-0">
+                <img src="<%= item.image %>" alt="<%= item.name %>" class="w-20 h-20 object-cover rounded mr-6 flex-shrink-0">
+                <div class="flex-grow">
+                  <p class="font-medium text-lg"><%= item.name %></p>
+                  
+                  <% if (item.isBulk) { %>
+                    <div class="text-sm text-blue-700 mt-2 font-medium">
+                      Оптовый заказ — <%= item.qty %> шт.
+                      <div class="text-xs mt-1 space-y-1">
+                        <% item.bulkDetails.forEach(d => { %>
+                          <div><%= d.size %>: <%= d.qty %> шт. по €<%= parseFloat(d.price).toFixed(2) %></div>
+                        <% }) %>
+                      </div>
+                    </div>
+                  <% } else { %>
+                    <p class="text-sm text-gray-600 mt-1">Количество: <%= item.qty %> шт.</p>
+                  <% } %>
+                </div>
+                <p class="font-bold text-lg text-right">€<%= itemTotal.toFixed(2) %></p>
+              </div>
+              <% }) %>
+            </div>
+
+            <div class="mt-8 pt-6 border-t-2 border-gray-200">
+              <div class="flex justify-between items-center">
+                <span class="text-2xl font-bold">Итого к оплате:</span>
+                <span class="text-3xl font-bold text-green-700">€<%= total.toFixed(2) %></span>
+              </div>
+            </div>
+          <% } else { %>
+            <p class="text-gray-500 text-center py-8">Корзина пуста</p>
+            <div class="text-center">
+              <a href="/catalog" class="inline-block mt-4 bg-black text-white px-6 py-3 rounded font-medium hover:bg-gray-800 transition">
+                Перейти в каталог
+              </a>
+            </div>
+          <% } %>
+        </div>
+      </div>
+      
+      <!-- Правая колонка - форма оплаты -->
+      <div>
+        <div class="bg-white rounded-lg shadow p-6">
+          <h2 class="text-xl font-bold mb-6">Быстрая оплата</h2>
+
+          <!-- КНОПКИ APPLE PAY / GOOGLE PAY (БОЛЬШИЕ, В НАЧАЛЕ) -->
+          <div id="payment-request-button" class="mb-8">
+            <!-- Stripe автоматически вставит сюда кнопку Apple Pay или Google Pay -->
+          </div>
+
+          <div class="text-center text-gray-500 text-lg mb-6 font-medium">или оплатите картой</div>
+
+          <form id="payment-form">
+            <div class="space-y-4 mb-6">
+              <div>
+                <label class="block text-sm font-medium mb-1">Email</label>
+                <input type="email" name="email" required 
+                  class="w-full border border-gray-300 rounded px-4 py-3 focus:outline-none focus:border-black">
+              </div>
+              <div>
+                <label class="block text-sm font-medium mb-1">Имя</label>
+                <input type="text" name="name" required 
+                  class="w-full border border-gray-300 rounded px-4 py-3 focus:outline-none focus:border-black">
+              </div>
+              <div>
+                <label class="block text-sm font-medium mb-1">Адрес доставки</label>
+                <textarea name="address" rows="3" required 
+                  class="w-full border border-gray-300 rounded px-4 py-3 focus:outline-none focus:border-black resize-none"></textarea>
+              </div>
+            </div>
+
+            <div id="card-element" class="p-4 border border-gray-300 rounded-lg mb-4 bg-gray-50"></div>
+            <div id="card-errors" role="alert" class="text-red-600 text-sm font-medium mb-4 min-h-6"></div>
+
+            <button id="submit-payment" type="submit"
+              class="w-full bg-black text-white py-5 rounded-lg font-bold text-xl hover:bg-gray-800 transition disabled:opacity-50">
+              Оплатить €<%= total ? total.toFixed(2) : '0.00' %>
+            </button>
+          </form>
+
+          <p class="text-sm text-gray-500 mt-6 text-center">Оплата защищена Stripe</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://js.stripe.com/v3/"></script>
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const stripe = Stripe('<%= publishableKey %>');
+    const elements = stripe.elements();
+
+    // === БЫСТРЫЙ ЧЕКАУТ: Apple Pay / Google Pay ===
+    const paymentRequest = stripe.paymentRequest({
+      country: 'LT',
+      currency: 'eur',
+      total: {
+        label: 'Alain Robyn',
+        amount: Math.round('<%= total * 100 %>'),
+      },
+      requestPayerName: true,
+      requestPayerEmail: true,
+    });
+
+    const prButton = elements.create('paymentRequestButton', {
+      paymentRequest: paymentRequest,
+      style: {
+        paymentRequestButton: {
+          type: 'buy',
+          theme: 'dark',
+          height: '64px',
+        },
+      },
+    });
+
+    // Показываем кнопку только если поддерживается
+    paymentRequest.canMakePayment().then(function(result) {
+      if (result) {
+        prButton.mount('#payment-request-button');
+      } else {
+        document.getElementById('payment-request-button').style.display = 'none';
+      }
+    });
+
+    // Обработка быстрого платежа
+    paymentRequest.on('paymentmethod', async (ev) => {
+      const response = await fetch('/create-checkout-session', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({})
+      });
+
+      const session = await response.json();
+
+      const { error } = await stripe.confirmCardPayment(session.client_secret, {
+        payment_method: ev.paymentMethod.id
+      });
+
+      if (error) {
+        ev.complete('fail');
+      } else {
+        ev.complete('success');
+        window.location.href = '/success';
+      }
+    });
+
+    // === ОБЫЧНАЯ ОПЛАТА КАРТОЙ ===
+    const cardElement = elements.create('card', {
+      style: {
+        base: {
+          fontSize: '16px',
+          color: '#32325d',
+          fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+          '::placeholder': { color: '#aab7c4' }
+        }
+      }
+    });
+    cardElement.mount('#card-element');
+
+    const form = document.getElementById('payment-form');
+    const cardErrors = document.getElementById('card-errors');
+    const submitBtn = document.getElementById('submit-payment');
+
+    form.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Обработка...';
+      cardErrors.textContent = '';
+
+      try {
+        const response = await fetch('/create-checkout-session', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({})
+        });
+
+        if (!response.ok) throw new Error('Серверная ошибка');
+
+        const session = await response.json();
+
+        const result = await stripe.redirectToCheckout({ sessionId: session.id });
+
+        if (result.error) {
+          cardErrors.textContent = result.error.message;
+        }
+      } catch (error) {
+        cardErrors.textContent = 'Ошибка при оплате. Попробуйте позже.';
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Оплатить €<%= total.toFixed(2) %>';
+      }
+    });
+  });
+</script>
+
+<%- include('footer') %>

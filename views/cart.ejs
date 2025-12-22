@@ -1,0 +1,184 @@
+<%- include('header', { title: 'Корзина | Alain Robyn' }) %>
+
+<div class="min-h-screen flex flex-col">
+  <div class="flex-grow">
+    <div class="max-w-6xl mx-auto py-12 px-4">
+      <h2 class="text-3xl mb-4 text-center font-medium">Your cart</h2>
+      <a href="/catalog" class="block text-center underline mb-8 hover:text-gray-700">
+        Continue shopping
+      </a>
+      
+      <% if (cart.length > 0) { %>
+      <div class="overflow-x-auto mb-10">
+        <table class="w-full min-w-[800px] text-left text-sm">
+          <thead class="border-b">
+            <tr>
+              <th class="w-1/2 py-3 font-medium">Product</th>
+              <th class="py-3 font-medium text-center">Quantity</th>
+              <th class="py-3 font-medium text-right">Total</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% cart.forEach((item, index) => { %>
+            <tr class="border-b">
+              <td class="py-6">
+                <div class="flex items-center">
+                  <img
+                    src="<%= item.image %>"
+                    alt="<%= item.name %>"
+                    class="w-20 h-20 object-contain mr-6"
+                  />
+                  <div>
+                    <p class="font-medium"><%= item.name %></p>
+                    <p class="text-sm text-gray-600 mt-1">
+                      Размер: one size. Цвет: <%= item.name.includes('black') ? 'Black' : 'White' %>.
+                    </p>
+                    <p class="font-bold mt-2">€<%= item.price.toFixed(2) %></p>
+                  </div>
+                </div>
+              </td>
+              <td class="py-6">
+                <div class="flex items-center justify-center" data-index="<%= index %>" data-id="<%= item.id %>">
+                  <button
+                    onclick="updateQuantity(this, -1)"
+                    class="bg-white border border-gray-300 w-10 h-10 flex items-center justify-center hover:bg-gray-50 text-lg"
+                  >
+                    -
+                  </button>
+                  <input
+                    type="number"
+                    id="qty-<%= index %>"
+                    value="<%= item.qty %>"
+                    min="1"
+                    class="w-16 h-10 text-center border border-gray-300 mx-2 text-lg"
+                    data-price="<%= item.price %>"
+                    readonly
+                  />
+                  <button
+                    onclick="updateQuantity(this, 1)"
+                    class="bg-white border border-gray-300 w-10 h-10 flex items-center justify-center hover:bg-gray-50 text-lg"
+                  >
+                    +
+                  </button>
+                  <form action="/remove-from-cart" method="POST" class="ml-6">
+                    <input type="hidden" name="id" value="<%= item.id %>" />
+                    <button 
+                      type="submit" 
+                      class="text-sm text-red-600 hover:text-red-800"
+                    >
+                      Удалить
+                    </button>
+                  </form>
+                </div>
+              </td>
+              <td class="py-6 text-right font-bold text-lg" id="total-<%= index %>">
+                €<%= (item.price * item.qty).toFixed(2) %>
+              </td>
+            </tr>
+            <% }) %>
+          </tbody>
+        </table>
+      </div>
+      
+      <div class="text-right mb-8">
+        <p class="text-xl mb-2">
+          Estimated total
+          <span id="grand-total" class="font-bold text-2xl">€<%= total.toFixed(2) %> EUR</span>
+        </p>
+        <p class="text-sm text-gray-600">
+          Taxes included. Discounts and shipping calculated at checkout.
+        </p>
+      </div>
+      
+      <div class="flex justify-center gap-6 mb-10">
+        <a 
+          href="/checkout" 
+          class="bg-black text-white px-10 py-4 font-medium hover:bg-gray-800 transition-colors"
+        >
+          Check out
+        </a>
+        <a 
+          href="/catalog" 
+          class="bg-gray-100 text-black px-10 py-4 font-medium hover:bg-gray-200 transition-colors border border-gray-300"
+        >
+          Continue shopping
+        </a>
+      </div>
+      
+      <p class="text-center text-sm text-gray-600 mb-16">
+        Оплата через PayPal: www.paypal.com...
+      </p>
+      <% } else { %>
+      
+      <!-- Пустая корзина -->
+      <div class="text-center py-20">
+        <p class="text-2xl mb-4">Ваша корзина пуста</p>
+        <p class="text-gray-600 mb-10">Добавьте товары из каталога</p>
+        <a 
+          href="/catalog" 
+          class="inline-block bg-black text-white px-8 py-3 font-medium hover:bg-gray-800 transition-colors"
+        >
+          Перейти в каталог
+        </a>
+      </div>
+      
+      <% } %>
+    </div>
+  </div>
+  
+  <!-- Футер будет всегда внизу -->
+  <div class="mt-auto">
+    <%- include('footer') %>
+  </div>
+</div>
+
+<script>
+  function updateQuantity(button, change) {
+    const container = button.parentElement;
+    const index = container.dataset.index;
+    const input = document.getElementById("qty-" + index);
+    let value = parseInt(input.value);
+    value = Math.max(1, value + change);
+    input.value = value;
+    
+    const itemId = container.dataset.id;
+    
+    fetch('/update-cart-quantity', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        id: itemId,
+        qty: value
+      })
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.success) {
+        document.getElementById("total-" + index).innerText = "€" + data.itemTotal;
+        document.getElementById("grand-total").innerText = "€" + data.total + " EUR";
+      }
+    })
+    .catch(error => {
+      console.error('Error:', error);
+      const price = parseFloat(input.dataset.price);
+      document.getElementById("total-" + index).innerText = "€" + (value * price).toFixed(2);
+      
+      let grandTotal = 0;
+      document.querySelectorAll('[id^="total-"]').forEach((td) => {
+        grandTotal += parseFloat(td.innerText.replace("€", ""));
+      });
+      document.getElementById("grand-total").innerText = "€" + grandTotal.toFixed(2) + " EUR";
+    });
+  }
+  
+  document.addEventListener('DOMContentLoaded', function() {
+    const quantityContainers = document.querySelectorAll('[data-index]');
+    quantityContainers.forEach(container => {
+      const index = container.dataset.index;
+      const itemId = container.querySelector('input[name="id"]') ? container.querySelector('input[name="id"]').value : '';
+      container.dataset.id = itemId;
+    });
+  });
+</script>

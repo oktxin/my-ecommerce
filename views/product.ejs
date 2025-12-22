@@ -1,0 +1,739 @@
+<%- include('header', { title: product.name }) %>
+
+<!-- Стили для toast-уведомления -->
+<style>
+  #add-to-cart-toast, #wishlist-toast {
+    visibility: hidden;
+    min-width: 320px;
+    background-color: #000000;
+    color: #ffffff;
+    text-align: center;
+    border-radius: 12px;
+    padding: 20px;
+    position: fixed;
+    z-index: 9999;
+    left: 50%;
+    bottom: 30px;
+    transform: translateX(-50%);
+    font-size: 18px;
+    font-weight: 600;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+    opacity: 0;
+    transition: opacity 0.5s ease, bottom 0.5s ease;
+  }
+
+  #add-to-cart-toast.show, #wishlist-toast.show {
+    visibility: visible;
+    opacity: 1;
+    bottom: 80px;
+  }
+
+  .product-layout {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0;
+    height: calc(100vh - 80px);
+  }
+
+  .product-image-container {
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    background: #f8f8f8;
+    padding: 3rem;
+    overflow-y: auto;
+    overflow-x: auto;
+    width: 100%;
+    height: 100%;
+    scrollbar-width: thin;
+    scrollbar-color: #ccc #f8f8f8;
+  }
+
+  .product-image-container::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  .product-image-container::-webkit-scrollbar-track {
+    background: #f8f8f8;
+  }
+
+  .product-image-container::-webkit-scrollbar-thumb {
+    background-color: #aaa;
+    border-radius: 4px;
+  }
+
+  .product-image {
+    width: auto;
+    height: auto;
+    max-width: none;
+    max-height: none;
+    min-width: 120%;
+    min-height: 120%;
+    object-fit: contain;
+    display: block;
+    transition: transform 0.3s ease;
+    cursor: zoom-in;
+  }
+
+  .product-image.zoomed {
+    cursor: zoom-out;
+  }
+
+  .product-info-container {
+    padding: 2rem 3rem;
+    display: flex;
+    flex-direction: column;
+    background: white;
+    overflow-y: auto;
+    height: 100%;
+  }
+
+  .size-selector {
+    display: flex;
+    gap: 0.5rem;
+    margin-top: 1rem;
+    flex-wrap: wrap;
+  }
+
+  .size-option {
+    width: 50px;
+    height: 50px;
+    border: 2px solid #000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.2s;
+    background: white;
+  }
+
+  .size-option:hover {
+    background: #000;
+    color: #fff;
+  }
+
+  .size-option.selected {
+    background: #000;
+    color: #fff;
+  }
+
+  .product-container {
+    max-width: 100% !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    height: 100vh;
+  }
+
+  .main-info-content {
+    flex: 1;
+    margin-bottom: 2rem;
+  }
+
+  .size-guide-container {
+    margin-top: 2rem;
+    margin-bottom: 2rem;
+  }
+
+  .image-controls {
+    position: absolute;
+    bottom: 20px;
+    right: 20px;
+    display: flex;
+    gap: 10px;
+    z-index: 10;
+  }
+
+  .zoom-btn {
+    width: 40px;
+    height: 40px;
+    background: white;
+    border: 2px solid #000;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-weight: bold;
+    font-size: 20px;
+    transition: all 0.2s;
+  }
+
+  .zoom-btn:hover {
+    background: #000;
+    color: white;
+  }
+
+  /* АДАПТИВНЫЕ СТИЛИ */
+  @media (max-width: 1024px) {
+    .product-layout {
+      grid-template-columns: 1fr;
+      height: auto;
+    }
+
+    .product-image-container {
+      height: 70vh;
+      padding: 1.5rem;
+    }
+
+    .product-info-container {
+      padding: 1.5rem;
+      height: auto;
+      max-height: none;
+    }
+
+    .image-controls {
+      bottom: 10px;
+      right: 10px;
+    }
+
+    .zoom-btn {
+      width: 36px;
+      height: 36px;
+      font-size: 18px;
+    }
+  }
+
+  @media (max-width: 768px) {
+    .product-image-container {
+      height: 60vh;
+      padding: 1rem;
+    }
+
+    .product-info-container {
+      padding: 1rem;
+    }
+
+    h1 {
+      font-size: 2rem !important;
+    }
+
+    .text-3xl {
+      font-size: 1.75rem !important;
+    }
+
+    .size-option {
+      width: 45px;
+      height: 45px;
+    }
+
+    .image-controls {
+      flex-direction: column;
+      gap: 8px;
+      bottom: 10px;
+      right: 10px;
+    }
+
+    .zoom-btn {
+      width: 35px;
+      height: 35px;
+      font-size: 16px;
+    }
+
+    /* Адаптивная таблица для оптового заказа */
+    .border-2.border-blue-300 {
+      padding: 1rem !important;
+    }
+
+    table {
+      display: block;
+      overflow-x: auto;
+      white-space: nowrap;
+    }
+
+    .border-2.border-blue-300 table th,
+    .border-2.border-blue-300 table td {
+      padding: 0.75rem !important;
+      font-size: 0.875rem !important;
+    }
+
+    .border-2.border-blue-300 h3 {
+      font-size: 1.5rem !important;
+    }
+
+    .flex.items-center.justify-center button,
+    .flex.items-center.justify-center input {
+      width: 2.5rem !important;
+      height: 2.5rem !important;
+    }
+
+    .flex.items-center.justify-center input {
+      width: 3.5rem !important;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .product-image-container {
+      height: 50vh;
+    }
+
+    .size-option {
+      width: 40px;
+      height: 40px;
+      font-size: 0.875rem;
+    }
+
+    .flex.items-center.border-2 button,
+    .flex.items-center.border-2 input {
+      width: 2.5rem !important;
+      height: 2.5rem !important;
+    }
+
+    .flex.items-center.border-2 input {
+      width: 3rem !important;
+    }
+
+    button.w-full {
+      padding: 0.75rem !important;
+      font-size: 1rem !important;
+    }
+
+    .image-controls {
+      bottom: 8px;
+      right: 8px;
+      gap: 6px;
+    }
+
+    .zoom-btn {
+      width: 32px;
+      height: 32px;
+      font-size: 14px;
+    }
+  }
+
+  @media (max-width: 360px) {
+    .product-image-container {
+      height: 45vh;
+    }
+
+    .size-selector {
+      gap: 0.25rem;
+    }
+
+    .size-option {
+      width: 36px;
+      height: 36px;
+      font-size: 0.75rem;
+    }
+
+    .product-info-container {
+      padding: 0.75rem;
+    }
+  }
+
+  /* Для очень высоких экранов */
+  @media (min-height: 1000px) {
+    .product-layout {
+      height: calc(100vh - 100px);
+    }
+  }
+</style>
+
+<div class="product-container">
+  
+
+  <div class="product-layout">
+    <!-- Изображение товара (левая половина - увеличенная с прокруткой) -->
+    <div class="product-image-container">
+      <img
+        src="<%= product.image %>"
+        alt="<%= product.name %>"
+        class="product-image"
+        id="product-image"
+      />
+      <div class="image-controls">
+        <button class="zoom-btn" id="zoom-in">+</button>
+        <button class="zoom-btn" id="zoom-out">−</button>
+        <button class="zoom-btn" id="reset-zoom">↺</button>
+      </div>
+    </div>
+
+    <!-- Информация о товаре (правая половина) -->
+    <div class="product-info-container">
+      <!-- Основное содержимое -->
+      <div class="main-info-content">
+        <!-- Бренд -->
+        <div class="text-sm text-gray-500 mb-2">
+          Alain Robyn
+        </div>
+        
+        <!-- Название товара -->
+        <h1 class="text-4xl md:text-5xl font-bold mb-4"><%= product.name %></h1>
+
+        <!-- Цена в зависимости от роли -->
+        <div class="mb-8">
+          <% if (locals.user && user.role === 'buyer') { %>
+            <% const discount = user.discount || 20; %>
+            <% const wholesalePrice = (product.price * (1 - discount / 100)).toFixed(2); %>
+            <p class="text-3xl font-bold text-blue-800">
+              €<%= wholesalePrice %> 
+              <span class="text-xl font-normal text-green-600">оптом (-<%= discount %>%)</span>
+            </p>
+            <p class="text-sm text-gray-500 line-through mt-2">Розница: €<%= product.price.toFixed(2) %></p>
+          <% } else { %>
+            <p class="text-3xl font-bold">€<%= product.price.toFixed(2) %> EUR</p>
+            <p class="text-sm text-gray-600 mt-1">Taxes included.</p>
+          <% } %>
+        </div>
+
+        <!-- Выбор размера только для обычных покупателей -->
+        <% if (!locals.user || user.role !== 'buyer') { %>
+          <div class="mb-8">
+            <label class="block text-sm font-medium mb-4">Size: <span id="selected-size-display" class="font-bold">Quick Add</span></label>
+            <div class="size-selector">
+              <% const sizes = ['S', 'M', 'L', 'XL', 'XXL']; %>
+              <% sizes.forEach(size => { %>
+                <div class="size-option" data-size="<%= size %>">
+                  <%= size %>
+                </div>
+              <% }) %>
+            </div>
+          </div>
+        <% } %>
+
+        <!-- Блок добавления в корзину в зависимости от роли -->
+        <% if (locals.user && user.role === 'buyer') { %>
+          <!-- ОПТОВАЯ ПАНЕЛЬ ДЛЯ БАЙЕРА -->
+          <div class="border-2 border-blue-300 bg-blue-50 rounded-xl p-8 shadow-lg mb-8">
+            <h3 class="text-2xl font-bold text-blue-900 mb-8 text-center">Оптовый заказ (B2B)</h3>
+
+            <table class="w-full mb-8">
+              <thead class="bg-blue-200 text-blue-900">
+                <tr>
+                  <th class="py-4 px-6 text-left text-sm font-semibold">Размер</th>
+                  <th class="py-4 px-6 text-left text-sm font-semibold">Оптовая цена</th>
+                  <th class="py-4 px-6 text-center text-sm font-semibold">Количество</th>
+                  <th class="py-4 px-6 text-right text-sm font-semibold">Итого</th>
+                </tr>
+              </thead>
+              <tbody>
+                <% const discount = user.discount || 20; %>
+                <% const wholesalePrice = (product.price * (1 - discount / 100)).toFixed(2); %>
+                <% const sizes = ['S', 'M', 'L', 'XL']; %>
+                <% sizes.forEach(size => { %>
+                  <tr class="border-b border-blue-100 hover:bg-blue-100 transition">
+                    <td class="py-5 px-6 font-medium text-lg"><%= size %></td>
+                    <td class="py-5 px-6">
+                      €<%= wholesalePrice %> 
+                      <span class="text-sm text-green-600 font-medium">(-<%= discount %>%)</span>
+                    </td>
+                    <td class="py-5 px-6">
+                      <div class="flex items-center justify-center">
+                        <button type="button" class="w-12 h-12 border border-gray-400 hover:bg-gray-200 rounded-l-lg bulk-minus text-xl" data-size="<%= size %>">-</button>
+                        <input type="number" min="0" value="0" 
+                               class="bulk-qty w-20 h-12 text-center border-t border-b border-gray-400 text-lg font-medium"
+                               data-size="<%= size %>" 
+                               data-price="<%= wholesalePrice %>">
+                        <button type="button" class="w-12 h-12 border border-gray-400 hover:bg-gray-200 rounded-r-lg bulk-plus text-xl" data-size="<%= size %>">+</button>
+                      </div>
+                    </td>
+                    <td class="py-5 px-6 text-right font-bold text-xl text-blue-800" id="total-<%= size %>">€0.00</td>
+                  </tr>
+                <% }) %>
+              </tbody>
+            </table>
+
+            <div class="border-t-4 border-blue-400 pt-8 bg-blue-50 -mx-8 px-8 pb-10 rounded-b-xl">
+              <div class="flex justify-between items-center mb-8">
+                <span class="text-2xl font-bold text-blue-900">Общая сумма оптового заказа:</span>
+                <span id="bulk-grand-total" class="text-4xl font-bold text-blue-900">€0.00</span>
+              </div>
+
+              <button id="add-bulk-to-cart" 
+                      class="w-full bg-white border-2 border-black text-black font-medium text-lg py-4 rounded-lg hover:bg-gray-100 transition duration-200 shadow-md">
+                Добавить оптовый заказ в корзину
+              </button>
+            </div>
+          </div>
+        <% } else { %>
+          <!-- РОЗНИЧНАЯ ФОРМА ДЛЯ ГОСТЯ ИЛИ ОБЫЧНОГО ПОКУПАТЕЛЯ -->
+          <div class="space-y-6 mb-8">
+            <div>
+              <label class="block text-sm font-medium mb-2">Количество</label>
+              <div class="flex items-center border-2 border-black w-fit">
+                <button type="button" onclick="this.parentNode.querySelector('input').stepDown()" class="w-12 h-12 hover:bg-gray-100">-</button>
+                <input type="number" value="1" min="1" class="w-20 h-12 text-center border-x-2 border-black" id="retail-qty" readonly>
+                <button type="button" onclick="this.parentNode.querySelector('input').stepUp()" class="w-12 h-12 hover:bg-gray-100">+</button>
+              </div>
+            </div>
+
+            <!-- КНОПКИ КАК НА ИЗОБРАЖЕНИИ -->
+            <div class="space-y-4">
+              <button id="add-retail-to-cart" 
+                      class="w-full bg-white border-2 border-black text-black font-medium text-lg py-4 rounded-lg hover:bg-gray-100 transition duration-200 shadow-md">
+                ADD TO BAG
+              </button>
+              
+              <button id="add-to-wishlist" class="w-full bg-gray-200 text-gray-800 py-4 rounded-lg font-bold text-lg hover:bg-pink-100 hover:text-pink-600 transition">
+                ADD TO WISHLIST
+              </button>
+            </div>
+          </div>
+        <% } %>
+      </div>
+
+      <!-- Размерная сетка — поднята выше (убрал mt-16, поставил mt-4) -->
+      <div class="mt-1">
+        <details class="border-2 border-gray-300 rounded-xl overflow-hidden">
+          <summary class="cursor-pointer font-bold text-lg py-4 px-6 bg-gray-100 hover:bg-gray-200 transition">
+            Размерная сетка
+          </summary>
+          <div class="p-6 bg-white">
+            <table class="w-full text-sm">
+              <thead class="bg-gray-100">
+                <tr>
+                  <th class="p-4 text-left">Размер</th>
+                  <th class="p-4 text-left">Ширина</th>
+                  <th class="p-4 text-left">Длина</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr class="border-t"><td class="p-4">S</td><td>~55 см</td><td>~70 см</td></tr>
+                <tr class="border-t"><td class="p-4">M</td><td>~58 см</td><td>~72 см</td></tr>
+                <tr class="border-t"><td class="p-4">L</td><td>~61 см</td><td>~74 см</td></tr>
+                <tr class="border-t"><td class="p-4">XL</td><td>~64 см</td><td>~76 см</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </details>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Toast уведомление -->
+<div id="add-to-cart-toast">
+  Заказ добавлен в корзину!
+</div>
+
+<div id="wishlist-toast">
+  Добавлено в wishlist ❤️
+</div>
+
+<%- include('footer') %>
+
+<!-- JavaScript -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  // Управление увеличением изображения
+  const productImage = document.getElementById('product-image');
+  const zoomInBtn = document.getElementById('zoom-in');
+  const zoomOutBtn = document.getElementById('zoom-out');
+  const resetZoomBtn = document.getElementById('reset-zoom');
+  
+  let scale = 1.2; // Начальный масштаб больше 100%
+  
+  function updateImageScale() {
+    productImage.style.transform = `scale(${scale})`;
+    if (scale > 1) {
+      productImage.classList.add('zoomed');
+    } else {
+      productImage.classList.remove('zoomed');
+    }
+  }
+  
+  // Инициализация начального масштаба
+  updateImageScale();
+  
+  // Увеличение
+  zoomInBtn.addEventListener('click', () => {
+    scale += 0.2;
+    updateImageScale();
+  });
+  
+  // Уменьшение
+  zoomOutBtn.addEventListener('click', () => {
+    if (scale > 0.4) {
+      scale -= 0.2;
+      updateImageScale();
+    }
+  });
+  
+  // Сброс
+  resetZoomBtn.addEventListener('click', () => {
+    scale = 1.2;
+    updateImageScale();
+  });
+  
+  // Клик по изображению для увеличения/уменьшения
+  productImage.addEventListener('click', (e) => {
+    if (e.target === productImage) {
+      if (scale === 1.2) {
+        scale = 2;
+      } else {
+        scale = 1.2;
+      }
+      updateImageScale();
+    }
+  });
+  
+  // Выбор размера (только для обычных покупателей)
+  const sizeOptions = document.querySelectorAll('.size-option');
+  const selectedSizeDisplay = document.getElementById('selected-size-display');
+  let selectedSize = null;
+  
+  sizeOptions.forEach(option => {
+    option.addEventListener('click', function() {
+      sizeOptions.forEach(opt => opt.classList.remove('selected'));
+      this.classList.add('selected');
+      selectedSize = this.dataset.size;
+      selectedSizeDisplay.textContent = selectedSize;
+    });
+  });
+
+  // Toast
+  const cartToast = document.getElementById('add-to-cart-toast');
+  const wishlistToast = document.getElementById('wishlist-toast');
+
+  function showToast(toast) {
+    toast.classList.add('show');
+    setTimeout(() => toast.classList.remove('show'), 3000);
+  }
+
+  // Wishlist
+  const wishlistBtn = document.getElementById('add-to-wishlist');
+  if (wishlistBtn) {
+    wishlistBtn.addEventListener('click', () => {
+      let wishlist = JSON.parse(localStorage.getItem('alainRobynWishlist') || '[]');
+      const productData = {
+        id: '<%= product.id %>',
+        name: '<%= product.name %>',
+        price: '<%= product.price %>',
+        image: '<%= product.image %>'
+      };
+
+      if (wishlist.find(p => p.id == productData.id)) {
+        wishlistToast.textContent = 'Товар уже в wishlist';
+      } else {
+        wishlist.push(productData);
+        localStorage.setItem('alainRobynWishlist', JSON.stringify(wishlist));
+        wishlistToast.textContent = 'Добавлено в wishlist ❤️';
+        wishlistBtn.textContent = 'IN WISHLIST';
+        wishlistBtn.disabled = true;
+        wishlistBtn.classList.add('bg-pink-100', 'text-pink-600');
+      }
+
+      showToast(wishlistToast);
+    });
+  }
+
+  // Оптовый заказ (если buyer)
+  const qtyInputs = document.querySelectorAll('.bulk-qty');
+  const grandTotalEl = document.getElementById('bulk-grand-total');
+
+  function updateTotals() {
+    let total = 0;
+    qtyInputs.forEach(input => {
+      const qty = parseInt(input.value) || 0;
+      const price = parseFloat(input.dataset.price);
+      const itemTotal = qty * price;
+      const size = input.dataset.size;
+      document.getElementById('total-' + size).textContent = '€' + itemTotal.toFixed(2);
+      total += itemTotal;
+    });
+    grandTotalEl.textContent = '€' + total.toFixed(2);
+  }
+
+  document.querySelectorAll('.bulk-plus').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const input = document.querySelector(`.bulk-qty[data-size="${btn.dataset.size}"]`);
+      input.value = parseInt(input.value || 0) + 1;
+      updateTotals();
+    });
+  });
+
+  document.querySelectorAll('.bulk-minus').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const input = document.querySelector(`.bulk-qty[data-size="${btn.dataset.size}"]`);
+      const val = parseInt(input.value || 0);
+      if (val > 0) input.value = val - 1;
+      updateTotals();
+    });
+  });
+
+  qtyInputs.forEach(input => input.addEventListener('input', updateTotals));
+
+  const bulkBtn = document.getElementById('add-bulk-to-cart');
+  if (bulkBtn) {
+    bulkBtn.addEventListener('click', () => {
+      const items = [];
+      qtyInputs.forEach(input => {
+        const qty = parseInt(input.value) || 0;
+        if (qty > 0) {
+          items.push({
+            size: input.dataset.size,
+            qty: qty,
+            price: parseFloat(input.dataset.price)
+          });
+        }
+      });
+
+      if (items.length === 0) {
+        alert('Выберите количество хотя бы по одному размеру');
+        return;
+      }
+
+      fetch('/add-bulk-to-cart', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          productId: '<%= product.id %>',
+          productName: '<%= product.name %>',
+          image: '<%= product.image %>',
+          items: items
+        })
+      })
+      .then(res => res.json())
+      .then(data => {
+        if (data.success) {
+          cartToast.textContent = 'Оптовый заказ добавлен в корзину!';
+          showToast(cartToast);
+          setTimeout(() => {
+            window.location.href = '/cart';
+          }, 3000);
+        } else {
+          alert('Ошибка добавления');
+        }
+      })
+      .catch(() => alert('Ошибка сети'));
+    });
+  }
+
+  // Розничное добавление
+  const retailBtn = document.getElementById('add-retail-to-cart');
+  if (retailBtn) {
+    retailBtn.addEventListener('click', () => {
+      if (!selectedSize) {
+        alert('Пожалуйста, выберите размер');
+        return;
+      }
+      
+      const quantity = document.getElementById('retail-qty').value;
+      
+      fetch('/add-to-cart', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          id: '<%= product.id %>',
+          size: selectedSize,
+          quantity: quantity
+        })
+      })
+      .then(res => res.json())
+      .then(data => {
+        if (data.success) {
+          cartToast.textContent = 'Товар добавлен в корзину!';
+          showToast(cartToast);
+          setTimeout(() => {
+            window.location.href = '/cart';
+          }, 3000);
+        } else {
+          alert('Ошибка добавления');
+        }
+      })
+      .catch(() => alert('Ошибка сети'));
+    });
+  }
+});
+</script>

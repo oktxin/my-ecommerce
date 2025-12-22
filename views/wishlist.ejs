@@ -1,0 +1,104 @@
+<%- include('header', { title: 'Wishlist | Alain Robyn' }) %>
+
+<div class="max-w-7xl mx-auto py-12 px-6">
+  <h1 class="text-4xl md:text-5xl font-bold mb-12 text-center">Мой Wishlist</h1>
+
+  <div id="wishlist-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+    <!-- Товары добавятся JS -->
+  </div>
+
+  <div id="empty-wishlist" class="text-center py-32 hidden">
+    <p class="text-2xl text-gray-500 mb-8">Ваш wishlist пуст</p>
+    <a href="/catalog" class="inline-block bg-black text-white px-8 py-4 rounded-lg font-medium hover:bg-gray-800 transition">
+      Перейти в каталог
+    </a>
+  </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const wishlistGrid = document.getElementById('wishlist-grid');
+  const emptyWishlist = document.getElementById('empty-wishlist');
+
+  function renderWishlist() {
+    const wishlist = JSON.parse(localStorage.getItem('alainRobynWishlist') || '[]');
+
+    if (wishlist.length === 0) {
+      wishlistGrid.innerHTML = '';
+      emptyWishlist.classList.remove('hidden');
+      return;
+    }
+
+    emptyWishlist.classList.add('hidden');
+    wishlistGrid.innerHTML = '';
+
+    wishlist.forEach(product => {
+      const card = document.createElement('div');
+      card.className = 'bg-white rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-500 hover:-translate-y-4';
+      card.dataset.id = product.id;
+
+      // Конвертируем price в число для toFixed
+      const formattedPrice = Number(product.price).toFixed(2);
+
+      card.innerHTML = `
+        <div class="relative w-full h-96 bg-gray-50 overflow-hidden">
+          <img src="${product.image}" alt="${product.name}" class="w-full h-full object-contain p-8 cursor-pointer" loading="lazy" />
+        </div>
+        <div class="p-6 text-center">
+          <h3 class="text-lg font-medium mb-3 truncate cursor-pointer">${product.name}</h3>
+          <p class="font-bold text-xl mb-4">€${formattedPrice} EUR</p>
+          <button class="remove-wishlist w-full bg-red-100 text-red-600 py-3 rounded-lg font-medium hover:bg-red-200 transition mb-4">
+            Удалить из wishlist
+          </button>
+          <button class="add-to-cart w-full bg-black text-white py-3 rounded-lg font-medium hover:bg-gray-800 transition">
+            Добавить в корзину
+          </button>
+        </div>
+      `;
+
+      wishlistGrid.appendChild(card);
+
+      // Переход по клику на картинку/название
+      const img = card.querySelector('img');
+      const title = card.querySelector('h3');
+      [img, title].forEach(el => {
+        el.addEventListener('click', () => {
+          window.location.href = `/product/${product.id}`;
+        });
+      });
+    });
+
+    // Удаление
+    document.querySelectorAll('.remove-wishlist').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+
+        const card = e.target.closest('[data-id]');
+        if (!card) return;
+
+        const productId = card.dataset.id;
+
+        let wishlist = JSON.parse(localStorage.getItem('alainRobynWishlist') || '[]');
+        wishlist = wishlist.filter(p => String(p.id) !== String(productId));
+        localStorage.setItem('alainRobynWishlist', JSON.stringify(wishlist));
+
+        renderWishlist();
+      });
+    });
+
+    // Заглушка для корзины
+    document.querySelectorAll('.add-to-cart').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        alert('Добавлено в корзину!');
+      });
+    });
+  }
+
+  renderWishlist();
+});
+</script>
+
+<%- include('footer') %>

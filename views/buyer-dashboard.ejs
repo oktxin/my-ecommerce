@@ -1,0 +1,61 @@
+<%- include('header', { title: 'Оптовый кабинет | Alain Robyn' }) %>
+
+<div class="max-w-4xl mx-auto py-12 px-6 pt-24">
+  <h1 class="text-4xl font-bold text-center mb-12">Оптовый кабинет</h1>
+
+  <div class="bg-white rounded-2xl shadow-xl p-8 space-y-12">
+
+    <!-- Текущая скидка -->
+    <div class="text-center bg-gradient-to-r from-blue-50 to-blue-100 rounded-2xl py-10 px-8">
+      <p class="text-xl text-blue-800 mb-4">Ваша текущая скидка</p>
+      <p class="text-6xl font-black text-blue-900"><%= user.discount || 20 %>%</p>
+      <p class="text-sm text-blue-700 mt-4">Чем больше заказов — тем выше скидка</p>
+    </div>
+
+    <!-- Статус последнего заказа -->
+    <div>
+      <h2 class="text-2xl font-bold mb-6">Статус последнего заказа</h2>
+      
+      <div class="space-y-4">
+        <div class="flex items-center justify-between">
+          <span class="text-lg font-medium">Раскрой</span>
+          <span class="text-green-600 font-bold">✓ Завершено</span>
+        </div>
+        
+        <div class="flex items-center justify-between">
+          <span class="text-lg font-medium">Пошив</span>
+          <span class="text-blue-600 font-bold">В процессе</span>
+        </div>
+        
+        <div class="flex items-center justify-between opacity-50">
+          <span class="text-lg font-medium">Готов к отгрузке</span>
+          <span class="font-bold">Ожидает</span>
+        </div>
+      </div>
+
+      <!-- Прогресс-бар -->
+      <div class="mt-8 bg-gray-200 rounded-full h-8 overflow-hidden">
+        <div class="bg-gradient-to-r from-blue-600 to-blue-800 h-full rounded-full w-2/3 transition-all duration-1000"></div>
+      </div>
+      <p class="text-center mt-4 text-gray-600">66% завершено</p>
+    </div>
+
+    <!-- Скачать счёт -->
+    <div class="text-center">
+      <a href="/download-invoice" class="inline-block bg-black text-white text-xl font-bold py-6 px-12 rounded-2xl hover:bg-gray-800 transition shadow-2xl">
+        Скачать счёт (PDF)
+      </a>
+      <p class="text-sm text-gray-600 mt-4">Заказ №2025-12-001 от 20 декабря 2025</p>
+    </div>
+
+    <!-- История заказов (заглушка) -->
+    <div class="border-t-2 border-gray-200 pt-8">
+      <h2 class="text-2xl font-bold mb-6">История заказов</h2>
+      <p class="text-gray-600 text-center py-8 bg-gray-50 rounded-xl">
+        Здесь будет таблица с вашими прошлыми оптовыми заказами
+      </p>
+    </div>
+  </div>
+</div>
+
+<%- include('footer') %>

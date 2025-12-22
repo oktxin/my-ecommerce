@@ -1,0 +1,119 @@
+[
+  {
+    "id": 1,
+    "name": "blue sport pants",
+    "description": "Blue Sporty Baggy Monster Joggers",
+    "price": 105.0,
+    "image": "/images/blue sport1.avif",
+    "category": "men",
+    "type": "pants"
+  },
+  {
+    "id": 2,
+    "name": "Grey Stacked Bootcut Suit Pants",
+    "description": "",
+    "price": 91.0,
+    "image": "/images/grey stacked.webp",
+    "category": "men",
+    "type": "pants"
+  },
+  {
+    "id": 3,
+    "name": "Violin Double Breasted Military Jacket",
+    "description": "Violin Double Breasted Military Jacket",
+    "price": 135.0,
+    "image": "/images/jacket1.avif",
+    "category": "unisex",
+    "type": "jacket"
+  },
+  {
+    "id": 4,
+    "name": "Charcoal Stacked Straight Suit Pants",
+    "description": "",
+    "price": 96.0,
+    "image": "/images/Charcoal.webp",
+    "category": "men",
+    "type": "pants"
+  },
+  {
+    "id": 5,
+    "name": "Brown Baggy Monster Joggers",
+    "description": "Brown Baggy Monster Joggers",
+    "price": 84.0,
+    "image": "/images/brown1.avif",
+    "category": "unisex",
+    "type": "pants"
+  },
+  {
+    "id": 6,
+    "name": "Grey Team 85 Knitted Bomber Jacket",
+    "description": "",
+    "price": 120.0,
+    "image": "/images/knitted jacket1.webp",
+    "category": "unisex",
+    "type": "jacket"
+  },
+  {
+    "id": 7,
+    "name": "leather belt",
+    "description": "Zebra Belt",
+    "price": 50.0,
+    "image": "/images/belt.avif",
+    "category": "unisex",
+    "type": "belt"
+  },
+  {
+    "id": 8,
+    "name": "clasic joggers",
+    "description": "Широкие спортивыные серые невероятные",
+    "price": 75.0,
+    "image": "/images/joggers.avif",
+    "category": "unisex",
+    "type": "pants"
+  },
+  {
+    "id": 9,
+    "name": "Venissa Embellished Low Rise Tailored Trousers",
+    "description": "",
+    "price": 110.0,
+    "image": "/images/women pants.avif",
+    "category": "women",
+    "type": "pants"
+  },
+  {
+    "id": 10,
+    "name": "Charcoal Leopard",
+    "description": "Fade Colossus Jeans",
+    "price": 100.0,
+    "image": "/images/leopard1.avif",
+    "category": "men",
+    "type": "pants"
+  },
+  {
+    "id": 11,
+    "name": "Polka",
+    "description": "Belt",
+    "price": 80.0,
+    "image": "/images/Polka.avif",
+    "category": "unisex",
+    "type": "belt"
+  },
+  {
+    "id": 12,
+    "name": "Black Vapor",
+    "description": "3/4 Shorts",
+    "price": 81.0,
+    "image": "/images/vapor1.webp",
+    "category": "unisex",
+    "type": "shorts"
+  },
+  {
+    "id": 13,
+    "name": "Vintage Shorts",
+    "description": "3/4 Shorts",
+    "price": 80.0,
+    "image": "/images/vintage1.avif",
+    "category": "men",
+    "type": "shorts"
+  }
+]
