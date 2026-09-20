@@ -9,7 +9,7 @@
   },
   "keywords": [],
   "author": "",
-  "license": "ISC",
+  "license": "MPL-2.0",
   "type": "commonjs",
   "dependencies": {
     "body-parser": "^2.2.0",
