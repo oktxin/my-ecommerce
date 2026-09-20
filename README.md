@@ -20,4 +20,5 @@ Bash
 npm run start
 
 📄 Лицензия
+
 Этот проект распространяется под лицензией Mozilla Public License 2.0 (MPL-2.0). Подробнее см. в файле LICENSE.
